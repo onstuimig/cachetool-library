@@ -99,6 +99,6 @@ class CacheToolTest extends \PHPUnit\Framework\TestCase
 
     protected function getLogger()
     {
-        return $this->getMockBuilder(\Monolog\Logger::class)->disableOriginalConstructor()->getMock();
+        return new \Psr\Log\NullLogger();
     }
 }

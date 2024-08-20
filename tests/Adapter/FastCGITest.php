@@ -8,8 +8,6 @@ use CacheTool\Adapter\FastCGI;
 use \hollodotme\FastCGI\SocketConnections\NetworkSocket;
 use \hollodotme\FastCGI\Requests\PostRequest;
 use \hollodotme\FastCGI\Responses\Response;
-use \Monolog\Logger;
-
 class FastCGITest extends \PHPUnit\Framework\TestCase
 {
     public function testRun()
@@ -17,7 +15,7 @@ class FastCGITest extends \PHPUnit\Framework\TestCase
         $fpm = new PhpFpmRunner();
         $fcgi = new FastCGI($fpm->socket);
         $fcgi->setTempDir(sys_get_temp_dir());
-        $fcgi->setLogger($this->getMockBuilder(Logger::class)->disableOriginalConstructor()->getMock());
+        $fcgi->setLogger(new \Psr\Log\NullLogger());
 
         $code = Code::fromString('return true;');
 
@@ -77,7 +75,7 @@ class FastCGITest extends \PHPUnit\Framework\TestCase
             ->willReturn($response);
 
         $fcgi->setTempDir(sys_get_temp_dir());
-        $fcgi->setLogger($this->getMockBuilder(Logger::class)->disableOriginalConstructor()->getMock());
+        $fcgi->setLogger(new \Psr\Log\NullLogger());
 
         $code = Code::fromString('return true;');
 

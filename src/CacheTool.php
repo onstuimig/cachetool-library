@@ -14,7 +14,7 @@ namespace CacheTool;
 use CacheTool\Adapter\AbstractAdapter;
 use CacheTool\Proxy\ProxyInterface;
 use Psr\Log\LoggerInterface;
-use Monolog\Logger;
+use Psr\Log\NullLogger;
 
 /**
  * @method mixed apcu_add(mixed $key, mixed $var, int $ttl = 0)
@@ -81,7 +81,7 @@ class CacheTool
      */
     public function __construct($tempDir = null, LoggerInterface $logger = null)
     {
-        $this->logger = $logger ?: new Logger('cachetool');
+        $this->logger = $logger ?: new NullLogger();
         $this->tempDir = $this->getWritableTempDir($tempDir);
     }
 

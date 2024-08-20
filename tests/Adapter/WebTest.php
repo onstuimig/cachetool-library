@@ -16,7 +16,7 @@ class WebTest extends \PHPUnit\Framework\TestCase
 
         $web = new Web(sys_get_temp_dir(), $httpMock);
         $web->setTempDir(sys_get_temp_dir());
-        $web->setLogger($this->getMockBuilder(\Monolog\Logger::class)->disableOriginalConstructor()->getMock());
+        $web->setLogger(new \Psr\Log\NullLogger());
 
         $this->assertSame(sys_get_temp_dir(), $web->getTempDir());
         $code = Code::fromString('return true;');
@@ -35,7 +35,7 @@ class WebTest extends \PHPUnit\Framework\TestCase
             ->willReturn(serialize(['errors' => [], 'result' => true]));
 
         $web = new Web("^", $httpMock);
-        $web->setLogger($this->getMockBuilder(\Monolog\Logger::class)->disableOriginalConstructor()->getMock());
+        $web->setLogger(new \Psr\Log\NullLogger());
 
         $code = Code::fromString('return true;');
 
@@ -52,7 +52,7 @@ class WebTest extends \PHPUnit\Framework\TestCase
             ->willReturn("");
 
         $web = new Web(sys_get_temp_dir(), $httpMock);
-        $web->setLogger($this->getMockBuilder(\Monolog\Logger::class)->disableOriginalConstructor()->getMock());
+        $web->setLogger(new \Psr\Log\NullLogger());
 
         $code = Code::fromString('return true;');
 
