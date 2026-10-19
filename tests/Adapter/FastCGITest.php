@@ -45,7 +45,7 @@ class FastCGITest extends \PHPUnit\Framework\TestCase
     public function testRunWithChroot()
     {
         $fcgi = $this->getMockBuilder(FastCGI::class)
-            ->setMethods(['getScriptFileName'])
+            ->onlyMethods(['getScriptFileName'])
             ->setConstructorArgs(['127.0.0.1:9000', sys_get_temp_dir()])
             ->getMock();
 
@@ -63,7 +63,7 @@ class FastCGITest extends \PHPUnit\Framework\TestCase
             ->willReturn($fileName);
 
         $connectionMock = new NetworkSocket('127.0.0.1', '9000', 5000, 120000);
-        $request = new PostRequest($fileName, '');
+        $request = new PostRequest($fileName);
         $response = new Response("Content-type: text/html; charset=UTF-8\r\n\r\na:2:{s:6:\"result\";b:1;s:6:\"errors\";a:0:{}}", '', 0);
 
         $clientMock->expects(self::once())
@@ -112,9 +112,7 @@ class FastCGITest extends \PHPUnit\Framework\TestCase
     {
         $fcgi = new FastCGI('127.0.0.1:9000');
 
-        $clientMock = $this->getMockBuilder(\hollodotme\FastCGI\Client::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $clientMock = $this->createStub(\hollodotme\FastCGI\Client::class);
         $clientMock->method('sendRequest')->willReturn(
             new Response("Status: 404 Not Found\r\nContent-type: text/html; charset=UTF-8\r\n\r\nNo input file specified.\n", '', 0)
         );
@@ -208,9 +206,7 @@ class FastCGITest extends \PHPUnit\Framework\TestCase
     {
         $fcgi = new FastCGI('127.0.0.1:9000');
 
-        $clientMock = $this->getMockBuilder(\hollodotme\FastCGI\Client::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $clientMock = $this->createStub(\hollodotme\FastCGI\Client::class);
         $clientMock->method('sendRequest')->willReturnCallback($callback);
         (new \ReflectionClass($fcgi))->getProperty('client')->setValue($fcgi, $clientMock);
 

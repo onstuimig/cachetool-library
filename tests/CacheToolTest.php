@@ -109,4 +109,23 @@ class CacheToolTest extends \PHPUnit\Framework\TestCase
 
         $this->assertFalse($method->invoke($cachetool, sys_get_temp_dir() . '/does-not-exist'));
     }
+
+    public function testThrowsWhenTempDirIsNotWritable()
+    {
+        // a directory under a file cannot be created, also not by root
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('CacheTool cannot write to the temporary directory ' . __FILE__ . '/tmp.');
+        new CacheTool(__FILE__ . '/tmp');
+    }
+
+    public function testThrowsWhenNoDefaultTempDirIsWritable()
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('CacheTool cannot write to the temporary directory ' . sys_get_temp_dir() . '.');
+        new class extends CacheTool {
+            protected function isWritable($tempDir) {
+                return false;
+            }
+        };
+    }
 }

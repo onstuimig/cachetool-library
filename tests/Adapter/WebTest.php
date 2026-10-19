@@ -9,7 +9,7 @@ class WebTest extends \PHPUnit\Framework\TestCase
 {
     public function testRun()
     {
-        $httpMock = $this->getMockBuilder(SymfonyHttpClient::class)->disableOriginalConstructor()->getMock();
+        $httpMock = $this->createStub(SymfonyHttpClient::class);
         $httpMock
             ->method('fetch')
             ->willReturn(serialize(['errors' => [], 'result' => true]));
@@ -29,7 +29,7 @@ class WebTest extends \PHPUnit\Framework\TestCase
     {
         $this->expectException(\RuntimeException::class);
 
-        $httpMock = $this->getMockBuilder(SymfonyHttpClient::class)->disableOriginalConstructor()->getMock();
+        $httpMock = $this->createStub(SymfonyHttpClient::class);
         $httpMock
             ->method('fetch')
             ->willReturn(serialize(['errors' => [], 'result' => true]));
@@ -46,7 +46,7 @@ class WebTest extends \PHPUnit\Framework\TestCase
     {
         $this->expectException(\RuntimeException::class);
 
-        $httpMock = $this->getMockBuilder(SymfonyHttpClient::class)->disableOriginalConstructor()->getMock();
+        $httpMock = $this->createStub(SymfonyHttpClient::class);
         $httpMock
             ->method('fetch')
             ->willReturn("");
@@ -63,7 +63,7 @@ class WebTest extends \PHPUnit\Framework\TestCase
     {
         $dir = sys_get_temp_dir();
         $files = [];
-        $httpMock = $this->getMockBuilder(SymfonyHttpClient::class)->disableOriginalConstructor()->getMock();
+        $httpMock = $this->createStub(SymfonyHttpClient::class);
         $httpMock
             ->method('fetch')
             ->willReturnCallback(function ($filename) use ($dir, &$files) {
@@ -89,7 +89,7 @@ class WebTest extends \PHPUnit\Framework\TestCase
     {
         $dir = sys_get_temp_dir();
         $files = [];
-        $httpMock = $this->getMockBuilder(SymfonyHttpClient::class)->disableOriginalConstructor()->getMock();
+        $httpMock = $this->createStub(SymfonyHttpClient::class);
         $httpMock
             ->method('fetch')
             ->willReturnCallback(function ($filename) use (&$files) {
@@ -116,7 +116,7 @@ class WebTest extends \PHPUnit\Framework\TestCase
             $this->markTestSkipped('root can chmod /dev/null');
         }
 
-        $httpMock = $this->getMockBuilder(SymfonyHttpClient::class)->disableOriginalConstructor()->getMock();
+        $httpMock = $this->createStub(SymfonyHttpClient::class);
 
         // /dev/null accepts touch() but only its owner can chmod() it
         $web = new class('/dev', $httpMock) extends Web {
