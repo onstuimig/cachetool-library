@@ -101,4 +101,12 @@ class CacheToolTest extends \PHPUnit\Framework\TestCase
     {
         return new \Psr\Log\NullLogger();
     }
+
+    public function testIsWritableWithMissingDir()
+    {
+        $cachetool = new CacheTool();
+        $method = (new \ReflectionClass($cachetool))->getMethod('isWritable');
+
+        $this->assertFalse($method->invoke($cachetool, sys_get_temp_dir() . '/does-not-exist'));
+    }
 }

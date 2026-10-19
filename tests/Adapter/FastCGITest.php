@@ -29,7 +29,6 @@ class FastCGITest extends \PHPUnit\Framework\TestCase
         $fcgi = new FastCGI(null, $tmpdir);
         $class = new \ReflectionClass($fcgi);
         $method = $class->getMethod('getScriptFileName');
-        $method->setAccessible(true);
 
         $this->assertSame('/test.php', $method->invoke($fcgi, "{$tmpdir}/test.php"));
     }
@@ -39,7 +38,6 @@ class FastCGITest extends \PHPUnit\Framework\TestCase
         $fcgi = new FastCGI(null);
         $class = new \ReflectionClass($fcgi);
         $method = $class->getMethod('getScriptFileName');
-        $method->setAccessible(true);
 
         $this->assertSame('/tmp/test.php', $method->invoke($fcgi, '/tmp/test.php'));
     }
@@ -53,7 +51,6 @@ class FastCGITest extends \PHPUnit\Framework\TestCase
 
         $reflection = new \ReflectionClass($fcgi);
         $reflectionClient = $reflection->getProperty('client');
-        $reflectionClient->setAccessible(true);
 
         $clientMock = $this->getMockBuilder(\hollodotme\FastCGI\Client::class)
             ->disableOriginalConstructor()
@@ -89,12 +86,10 @@ class FastCGITest extends \PHPUnit\Framework\TestCase
 
         $reflection = new \ReflectionClass($fcgi);
         $reflectionConn = $reflection->getProperty('connection');
-        $reflectionConn->setAccessible(true);
         $connection = $reflectionConn->getValue($fcgi);
 
         $reflection = new \ReflectionClass($connection);
         $reflectionHost = $reflection->getProperty('host');
-        $reflectionHost->setAccessible(true);
 
         $this->assertSame('127.0.0.1', $reflectionHost->getValue($connection));
     }
@@ -105,13 +100,84 @@ class FastCGITest extends \PHPUnit\Framework\TestCase
 
         $reflection = new \ReflectionClass($fcgi);
         $reflectionConn = $reflection->getProperty('connection');
-        $reflectionConn->setAccessible(true);
         $connection = $reflectionConn->getValue($fcgi);
 
         $reflection = new \ReflectionClass($connection);
         $reflectionHost = $reflection->getProperty('host');
-        $reflectionHost->setAccessible(true);
 
         $this->assertSame('[::]', $reflectionHost->getValue($connection));
+    }
+
+    public function testRunThrowsWhenFpmCannotReadFile()
+    {
+        $fcgi = new FastCGI('127.0.0.1:9000');
+
+        $clientMock = $this->getMockBuilder(\hollodotme\FastCGI\Client::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $clientMock->method('sendRequest')->willReturn(
+            new Response("Status: 404 Not Found\r\nContent-type: text/html; charset=UTF-8\r\n\r\nNo input file specified.\n", '', 0)
+        );
+        (new \ReflectionClass($fcgi))->getProperty('client')->setValue($fcgi, $clientMock);
+
+        $fcgi->setTempDir(sys_get_temp_dir());
+        $fcgi->setLogger(new \Psr\Log\NullLogger());
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('--tmp-dir');
+        $fcgi->run(Code::fromString('return true;'));
+    }
+
+    public function testGuessesSocketFile()
+    {
+        $socket = tempnam(sys_get_temp_dir(), 'php-fpm-sock');
+
+        $fcgi = new class($socket) extends FastCGI {
+            public function __construct($socket)
+            {
+                $this->possibleSocketFilePatterns = [$socket];
+                parent::__construct();
+            }
+        };
+        unlink($socket);
+
+        $this->assertSame($socket, (new \ReflectionClass($fcgi))->getProperty('host')->getValue($fcgi));
+    }
+
+    public function testGetScriptFileNameOutsideChroot()
+    {
+        $fcgi = new FastCGI(null, '/does-not-exist');
+        $method = (new \ReflectionClass($fcgi))->getMethod('getScriptFileName');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('file not in chroot directory');
+        $method->invoke($fcgi, '/tmp/test.php');
+    }
+
+    public function testRunThrowsOnInvalidResponse()
+    {
+        $fcgi = $this->createFastCGIWithResponse(function () {
+            return new Response("Content-type: text/html\r\n\r\nFatal error", '', 0);
+        });
+        $fcgi->setLogger(new \Psr\Log\NullLogger());
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Error: Fatal error');
+        $fcgi->run(Code::fromString('return true;'));
+    }
+
+    private function createFastCGIWithResponse(callable $callback)
+    {
+        $fcgi = new FastCGI('127.0.0.1:9000');
+
+        $clientMock = $this->getMockBuilder(\hollodotme\FastCGI\Client::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $clientMock->method('sendRequest')->willReturnCallback($callback);
+        (new \ReflectionClass($fcgi))->getProperty('client')->setValue($fcgi, $clientMock);
+
+        $fcgi->setTempDir(sys_get_temp_dir());
+
+        return $fcgi;
     }
 }

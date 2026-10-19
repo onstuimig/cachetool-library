@@ -1,3 +1,12 @@
+# 10.0.2
+
+- [#237](https://github.com/gordalina/cachetool/issues/237) Fix `apcu:key:fetch` and `apcu:key:store` when the key contains `%`
+
+# 10.0.1
+
+- [#265](https://github.com/gordalina/cachetool/issues/265) Show a clear error when php-fpm cannot read the temporary file
+- [#248](https://github.com/gordalina/cachetool/issues/248) Show dates in the local timezone when `date.timezone` is not set
+
 # 10.0.0
 
 - [#261](https://github.com/gordalina/cachetool/pull/261) Use `sys_get_temp_dir()` as default temporary directory

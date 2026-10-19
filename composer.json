@@ -40,5 +40,13 @@
         "psr-4": {
             "CacheTool\\": "tests/"
         }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "config": {
+        "platform": {
+            "php": "8.1.0"
+        }
     }
 }
