@@ -166,6 +166,44 @@ class FastCGITest extends \PHPUnit\Framework\TestCase
         $fcgi->run(Code::fromString('return true;'));
     }
 
+    public function testGivesUpAfterRetries()
+    {
+        $calls = 0;
+        $fcgi = $this->createFastCGIWithResponse(function () use (&$calls) {
+            $calls++;
+            throw new \hollodotme\FastCGI\Exceptions\ConnectException('Unable to connect');
+        });
+        $fcgi->setLogger(new \Psr\Log\NullLogger());
+        $fcgi->setRetries(2);
+
+        try {
+            $fcgi->run(Code::fromString('return true;'));
+            $this->fail('Expected exception');
+        } catch (\RuntimeException $e) {
+            $this->assertStringContainsString('FastCGI error: Unable to connect', $e->getMessage());
+        }
+        $this->assertSame(3, $calls);
+    }
+
+    public function testDoesNotRetryErrorsOfTheCode()
+    {
+        $calls = 0;
+        $fcgi = $this->createFastCGIWithResponse(function () use (&$calls) {
+            $calls++;
+            return new Response("Content-type: text/html\r\n\r\n" . serialize(['result' => false, 'errors' => [['no' => 1, 'str' => 'boom']]]), '', 0);
+        });
+        $fcgi->setLogger(new \Psr\Log\NullLogger());
+        $fcgi->setRetries(3);
+
+        try {
+            $fcgi->run(Code::fromString('return true;'));
+            $this->fail('Expected exception');
+        } catch (\RuntimeException $e) {
+            $this->assertStringContainsString('boom', $e->getMessage());
+        }
+        $this->assertSame(1, $calls);
+    }
+
     private function createFastCGIWithResponse(callable $callback)
     {
         $fcgi = new FastCGI('127.0.0.1:9000');
