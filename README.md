@@ -76,6 +76,8 @@ Tests in `tests/Adapter/Http/FileGetContentsTest` and `tests/Adapter/Http/Symfon
 
 | CacheTool Library | PHP
 | - | -
+| `11.x` | `>=8.2`
+| `10.x` | `>=8.1`
 | `9.x` | `>=8.1`
 
 ## License

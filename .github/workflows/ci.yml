@@ -18,7 +18,7 @@ jobs:
       max-parallel: 15
       matrix:
         operating-system: [ubuntu-latest, macos-latest]
-        php-version: ["8.1", "8.2", "8.3", "8.4", "8.5"]
+        php-version: ["8.2", "8.3", "8.4", "8.5"]
         allow-failure: [false]
         include:
           - php-version: 8.6
